@@ -1,5 +1,5 @@
 [package]
-name = "Hodor"
+name = "hodor"
 version = "0.1.0"
 authors = ["Martin Smith <msmith3dart@icloud.com>"]
 edition = "2018"
@@ -9,6 +9,7 @@ reqwest = "0.9.7"
 select = "0.4.2"
 scraper = "0.9.0"
 table-extract = "0.2.1"
+pbr = "1.0.1"
 
 [[bin]]
 name = "level_0"
@@ -17,3 +18,7 @@ path = "src/bin/level_0.rs"
 [[bin]]
 name = "try_scraper"
 path = "src/bin/try_scraper.rs"
+
+[[bin]]
+name = "lib_test"
+path = "src/bin/lib_test.rs"
