@@ -40,7 +40,7 @@ fn main() -> Result<(), reqwest::Error> {
     params.insert("holdthedoor", "Submit+Query");
 
     // post votes to server.
-    post_req(params, num_votes - hm_data.get("538").unwrap());
+    post_req(params, num_votes - hm_data["538"]);
 
     Ok(())
 }

@@ -7,7 +7,7 @@ use std::result::*;
 
 #[allow(dead_code)]
 fn main() -> Result<(), reqwest::Error> {
-    let num_votes = 50;
+    let num_votes = 1024;
     let mut hodor = HodorT::new();
 
 //    hodor.set_url("http://158.69.76.135/level0.php");
@@ -15,7 +15,7 @@ fn main() -> Result<(), reqwest::Error> {
     hodor.parse_html();
     hodor.insert_form("id", "12345")
         .insert_form("holdthedoor", "Submit+Query");
-    hodor.post_req(num_votes)?;
+    hodor.fake_post_req(num_votes)?;
 
     Ok(())
 }
