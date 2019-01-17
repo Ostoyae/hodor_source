@@ -6,12 +6,14 @@ use pbr::ProgressBar;
 
 /// A Hodor structure
 /// Todo: implement url
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct HodorStruct {
-//   url: Option<String>,
     html: Option<String>,
-    votes: HashMap<String, u32>,
-    form: HashMap<&'static str, &'static str>,
+    votes: HashMap<String, u64>,
+    form: HashMap<&'static str, String>,
+    url: Option<String>,
+    pub goal: u64,
+    pub cookies: bool
 }
 
 pub type HodorT = HodorStruct;
@@ -19,6 +21,16 @@ pub type HodorT = HodorStruct;
 impl HodorStruct {
     pub fn new() -> HodorStruct {
         HodorStruct::default()
+    }
+
+    pub fn set_url(&mut self , url : String) -> &mut Self {
+        self.url = Some(url);
+        self
+    }
+
+    pub fn set_goal(&mut self , goal : u64) -> &mut Self {
+        if goal > 1024 {self.goal = u64::from(goal)}
+        self
     }
 
     pub fn get_html(&mut self) -> Result<(), reqwest::Error> {
@@ -45,24 +57,24 @@ impl HodorStruct {
             {
                 self.votes.insert(
                     k.inner_html().trim().to_string(),
-                    v.inner_html().trim().parse::<u32>().unwrap(),
+                    v.inner_html().trim().parse::<u64>().unwrap(),
                 );
             }
     }
 
-    pub fn insert_form(&mut self, key: &'static str, value: &'static str) -> &mut Self {
-        self.form.insert(key, value);
+    pub fn insert_form<S>(&mut self, key: &'static str, value: S) -> &mut Self
+        where S: Into<String>
+    {
+        self.form.insert(key, value.into());
         self
     }
 
-    pub fn post_req(self, goal: u32) -> Result<(), reqwest::Error> {
+    pub fn post_req(self) -> Result<(), reqwest::Error> {
         let voter: &str = self.form.get("id").expect("Id Value");
-        let count: u32 = goal - self.votes.get(voter).expect("voter's current score");
         let client = reqwest::Client::new();
-
-        let mut pb = ProgressBar::new(u64::from(count));
+        let count: u64 = self.votes.get(voter).expect("voter's current score") - self.goal;
+        let mut pb = ProgressBar::new(count);
         pb.format("╢▌▌░╟");
-
         let handle = thread::spawn(move || {
             for _i in 0..count {
                 pb.inc();
@@ -80,16 +92,16 @@ impl HodorStruct {
         Ok(())
     }
 
-    pub fn fake_post_req(self, goal: u32) -> Result<(), reqwest::Error> {
+    pub fn fake_post_req(self) -> Result<(), reqwest::Error> {
         let voter: &str = self.form.get("id").expect("Id Value");
-        let count: u32 = goal - self.votes.get(voter).expect("voter's current score");
+        let count: u64 = self.votes.get(voter).expect("voter's current score") - self.goal;
 
-        let mut pb = ProgressBar::new(u64::from(count));
+        let mut pb = ProgressBar::new(count);
         pb.format("╢▌▌░╟");
-
         let handle = thread::spawn(move || {
             for _i in 0..count {
                 pb.inc();
+                thread::sleep(Duration::from_millis(3))
             }
             pb.finish_print("Votes been casted");
         });

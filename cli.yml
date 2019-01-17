@@ -9,11 +9,13 @@ args:
       value_name: idetification
       help: student id goes here, must be an unsigned number.
       takes_value: true
+      default_value: "538"
   - amount:
       short: a
       value_name : amount
       help: number of votes for the app to post.
       takes_value: true
+      default_value: "1024"
   - cookies:
       short: c
       multiple: false
