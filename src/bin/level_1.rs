@@ -13,13 +13,14 @@ fn main() -> Result<(), reqwest::Error> {
     }
 
     let mut hodor = HodorT::new();
+    let client = reqwest::Client::new();
     hodor = run_clap(hodor);
 
-    hodor.set_url("http://158.69.76.135/level0.php");
+    hodor.set_url("http://158.69.76.135/level1.php");
     hodor.get_html()?;
     hodor.parse_html();
     hodor.insert_form("holdthedoor", "Submit+Query");
-    hodor.fake_post_req()?;
+    hodor.post_req()?;
 
     Ok(())
 }

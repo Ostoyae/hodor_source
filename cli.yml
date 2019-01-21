@@ -3,25 +3,30 @@ version: "0.1.0"
 author: Martin Smith <msmith3dart@icloud.com>
 about: Holberton project
 args:
-  - id:
-      short: i
-      long: id
-      value_name: idetification
-      help: student id goes here, must be an unsigned number.
-      takes_value: true
-      default_value: "538"
-  - amount:
-      short: a
-      value_name : amount
-      help: number of votes for the app to post.
-      takes_value: true
-      default_value: "1024"
-  - cookies:
-      short: c
-      multiple: false
-      help: make a get request for cookies before every post. usally need if an user side id is require to make a post.
-  - force:
-      short: f
-      long: force
-      multiple: false
-      help: skip short pause before app run.
+    - url:
+        short: u
+        long: url
+        takes_value: true
+        help: url of the level
+    - id:
+        short: i
+        long: id
+        value_name: idetification
+        help: student id goes here, must be an unsigned number.
+        takes_value: true
+        default_value: "538"
+    - amount:
+        short: a
+        value_name : amount
+        help: number of votes for the app to post.
+        takes_value: true
+        default_value: "1024"
+    - cookies:
+        short: c
+        multiple: false
+        help: make a get request for cookies before every post. usally need if an user side id is require to make a post.
+    - force:
+        short: f
+        long: force
+        multiple: false
+        help: skip short pause before app run.

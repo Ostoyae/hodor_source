@@ -15,10 +15,13 @@ clap = {version = "2.32.0", features = ["yaml"]}
 colored = "1.7.0"
 ansi_term = "0.11.0"
 
-
 [[bin]]
 name = "level_0"
 path = "src/bin/level_0.rs"
+
+[[bin]]
+name = "level_1"
+path = "src/bin/level_1.rs"
 
 
 [[example]]
