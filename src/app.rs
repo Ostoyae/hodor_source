@@ -121,8 +121,8 @@ impl HodorStruct {
                 header.insert(COOKIE,  reqwest::header::HeaderValue::from_str(&t).unwrap());
             }
             let post = client.post(&self.url);
-            let handle = thread::spawn(move || {
-                let req = post.form(&form).headers(header).send();
+            let _handle = thread::spawn(move || {
+                let _req = post.form(&form).headers(header).send();
 
 //            println!("{:?}", &form);
 //            let handle = thread::spawn(move || {
@@ -144,8 +144,8 @@ impl HodorStruct {
         pb.format("╢▌▌░╟");
 
             for _i in 0..count {
-                let mut form = self.form.clone();
-                let client = reqwest::Client::new();
+                let mut _form = self.form.clone();
+                let _client = reqwest::Client::new();
                 if self.cookies {
 //                    let mut v;
 //                    v = self.get_cookie(client)["HoldTheDoor"].to_owned();
