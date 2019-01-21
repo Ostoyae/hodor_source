@@ -2,7 +2,7 @@ use pbr::ProgressBar;
 use reqwest;
 use reqwest::header::*;
 use scraper::{Html, Selector};
-use std::{collections::HashMap, option::Option, result::*, thread, time::Duration};
+use std::{collections::HashMap, option::Option, result::*, thread, time::Duration, sync::mpsc};
 //use colored::*;
 
 /// A Hodor structure
@@ -123,12 +123,7 @@ impl HodorStruct {
             let post = client.post(&self.url);
             let _handle = thread::spawn(move || {
                 let _req = post.form(&form).headers(header).send();
-
-//            println!("{:?}", &form);
-//            let handle = thread::spawn(move || {
                 thread::sleep(Duration::from_millis(1));
-//            });
-//            handle.join().expect("handle failed");
             });
         }
 
@@ -141,9 +136,13 @@ impl HodorStruct {
         let voter: &str = self.form.get("id").expect("Id Value");
         let count: u64 = self.get_goal() - self.votes.get(voter).expect("voter's current score");
         let mut pb = ProgressBar::new(count);
+
+        let (tx,rx) = mpsc::channel();
+
         pb.format("╢▌▌░╟");
 
-            for _i in 0..count {
+            for i in 0..count {
+                let tx = tx.clone();
                 let mut _form = self.form.clone();
                 let _client = reqwest::Client::new();
                 if self.cookies {
@@ -151,13 +150,17 @@ impl HodorStruct {
 //                    v = self.get_cookie(client)["HoldTheDoor"].to_owned();
 //                    form.insert("HoldTheDoor", v.to_owned());
                 }
-                //                println!("{:?}", form["HoldTheDoor"]);
-                pb.inc();
-                let handle = thread::spawn(move || {
-                    thread::sleep(Duration::from_millis(5))
+                let _handle = thread::spawn(move || {
+                    tx.send(i).unwrap();
                 });
-                handle.join().expect("handle failed");
+                pb.inc();
+//                handle.join().expect("handle failed");
+
             }
+
+        for _i in 0..count{
+            rx.recv().is_ok();
+        }
             pb.finish_print("Votes been casted");
 
 

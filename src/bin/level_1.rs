@@ -20,7 +20,7 @@ fn main() -> Result<(), reqwest::Error> {
     hodor.get_html()?;
     hodor.parse_html();
     hodor.insert_form("holdthedoor", "Submit+Query");
-    hodor.post_req()?;
+    hodor.fake_post_req()?;
 
     Ok(())
 }
