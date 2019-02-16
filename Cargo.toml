@@ -23,6 +23,10 @@ path = "src/bin/level_0.rs"
 name = "level_1"
 path = "src/bin/level_1.rs"
 
+[[bin]]
+name = "level_2"
+path = "src/bin/level_2.rs"
+
 
 [[example]]
 name = "try_scraper"

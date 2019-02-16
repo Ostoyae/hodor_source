@@ -2,19 +2,20 @@
 extern crate clap;
 
 #[cfg(target_os = "windows")]
+
 use ansi_term;
 use pbr::ProgressBar;
 use hodor::HodorT;
 use colored::*;
 use std::{result::*, time::Duration};
 
-
 fn main() -> Result<(), reqwest::Error> {
     enable_ansi();
+
     let mut hodor = HodorT::new();
     hodor = run_clap(hodor);
 
-    hodor.set_url("http://158.69.76.135/level0.php");
+    hodor.set_url("http://158.69.76.135/level2.php");
     hodor.get_html()?;
     hodor.parse_html();
     hodor.insert_form("holdthedoor", "Submit+Query");
@@ -33,7 +34,6 @@ fn enable_ansi(){
 #[cfg(target_os = "linux")]
 fn enable_ansi(){
 }
-
 
 fn run_clap(mut hodor : HodorT) -> HodorT
 {

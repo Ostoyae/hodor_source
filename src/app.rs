@@ -2,7 +2,7 @@ use pbr::ProgressBar;
 use reqwest;
 use reqwest::header::*;
 use scraper::{Html, Selector};
-use std::{collections::HashMap, option::Option, result::*, thread, time::Duration, sync::mpsc};
+use std::{collections::HashMap, option::Option, result::*, sync::mpsc, thread, time::Duration};
 //use colored::*;
 
 /// A Hodor structure
@@ -49,12 +49,17 @@ impl HodorStruct {
         Ok(())
     }
 
-    pub fn get_cookie(&self, client : reqwest::Client)
-        -> HashMap<String, String>
- {
+    pub fn get_cookie(&self, client: reqwest::Client) -> HashMap<String, String> {
         let url = self.url.clone();
-        let cookie = client.head(&url)
-            .header(COOKIE, "HoldTheDoor").send().unwrap().headers().get("set-cookie").unwrap().to_owned();
+        let cookie = client
+            .head(&url)
+            .header(COOKIE, "HoldTheDoor")
+            .send()
+            .unwrap()
+            .headers()
+            .get("set-cookie")
+            .unwrap()
+            .to_owned();
         let str: String = cookie.to_str().expect("valid str").into();
         let col = str
             .split(";")
@@ -94,21 +99,25 @@ impl HodorStruct {
     }
 
     pub fn post_req(self) -> Result<(), reqwest::Error> {
+        let (tx, rx) = mpsc::channel();
         let voter: &str = self.form.get("id").expect("Id Value");
         let count: u64 = self.goal - self.votes.get(voter).expect("voter's current score");
         let mut pb = ProgressBar::new(count);
         pb.format("╢▌▌░╟");
 
-        for _i in 0..count {
+        for i in 0..count {
+            let tx = tx.clone();
             pb.inc();
             let client = reqwest::Client::new();
             let mut form = self.form.clone();
-            let mut header = reqwest::header::HeaderMap::new();
+            let mut header = HeaderMap::new();
+            header.insert("User-Agent", HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0)"));
             if self.cookies {
                 let mut v;
                 let url = self.url.clone();
-                let cookie = client.head(&url)
-                                   .header(COOKIE, "HoldTheDoor").send().unwrap().headers().get("set-cookie").unwrap().to_owned();
+                let temp = client.get(&url).header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0)").send();
+//                println!("{:?}", &temp);
+                let cookie = temp.unwrap().headers().to_owned().get("set-cookie").unwrap().to_owned();
                 let str: String = cookie.to_str().expect("valid str").into();
                 let col = str
                     .split(";")
@@ -118,13 +127,18 @@ impl HodorStruct {
                 v = col["HoldTheDoor"].to_owned();
                 form.insert("key", v.to_owned());
                 let t = format!("HoldTheDoor={}", v.to_owned());
-                header.insert(COOKIE,  reqwest::header::HeaderValue::from_str(&t).unwrap());
+                header.insert(COOKIE, HeaderValue::from_str(&t).unwrap());
             }
             let post = client.post(&self.url);
             let _handle = thread::spawn(move || {
-                let _req = post.form(&form).headers(header).send();
+                let _req = post.headers(header).form(&form).send();
+                tx.send(i).is_ok();
                 thread::sleep(Duration::from_millis(1));
             });
+        }
+
+        for _i in 0..count {
+            rx.recv().is_ok();
         }
 
         pb.finish_print("Votes been casted");
@@ -137,34 +151,30 @@ impl HodorStruct {
         let count: u64 = self.get_goal() - self.votes.get(voter).expect("voter's current score");
         let mut pb = ProgressBar::new(count);
 
-        let (tx,rx) = mpsc::channel();
+        let (tx, rx) = mpsc::channel();
 
         pb.format("╢▌▌░╟");
 
-            for i in 0..count {
-                let tx = tx.clone();
-                let mut _form = self.form.clone();
-                let _client = reqwest::Client::new();
-                if self.cookies {
-//                    let mut v;
-//                    v = self.get_cookie(client)["HoldTheDoor"].to_owned();
-//                    form.insert("HoldTheDoor", v.to_owned());
-                }
-                let _handle = thread::spawn(move || {
-                    tx.send(i).unwrap();
-                });
-                pb.inc();
-//                handle.join().expect("handle failed");
-
+        for i in 0..count {
+            let tx = tx.clone();
+            let mut _form = self.form.clone();
+            let _client = reqwest::Client::new();
+            if self.cookies {
+                //                    let mut v;
+                //                    v = self.get_cookie(client)["HoldTheDoor"].to_owned();
+                //                    form.insert("HoldTheDoor", v.to_owned());
             }
+            let _handle = thread::spawn(move || {
+                tx.send(i).unwrap();
+            });
+            pb.inc();
+            //                handle.join().expect("handle failed");
+        }
 
-        for _i in 0..count{
+        for _i in 0..count {
             rx.recv().is_ok();
         }
-            pb.finish_print("Votes been casted");
-
-
-
+        pb.finish_print("Votes been casted");
 
         Ok(())
     }

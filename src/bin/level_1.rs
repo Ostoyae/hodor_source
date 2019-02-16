@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate clap;
 
+#[cfg(target_os = "windows")]
+
 use ansi_term;
 use pbr::ProgressBar;
 use hodor::HodorT;
@@ -8,21 +10,29 @@ use colored::*;
 use std::{result::*, time::Duration};
 
 fn main() -> Result<(), reqwest::Error> {
-    if cfg!(windows) && ansi_term::enable_ansi_support().is_err() {
-        colored::control::set_override(false);
-    }
+    enable_ansi();
 
     let mut hodor = HodorT::new();
-    let client = reqwest::Client::new();
     hodor = run_clap(hodor);
 
     hodor.set_url("http://158.69.76.135/level1.php");
     hodor.get_html()?;
     hodor.parse_html();
     hodor.insert_form("holdthedoor", "Submit+Query");
-    hodor.fake_post_req()?;
+    hodor.post_req()?;
 
     Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn enable_ansi(){
+    if cfg!(windows) && ansi_term::enable_ansi_support().is_err() {
+        colored::control::set_override(false);
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn enable_ansi(){
 }
 
 fn run_clap(mut hodor : HodorT) -> HodorT
