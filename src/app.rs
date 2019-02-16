@@ -3,6 +3,7 @@ use reqwest;
 use reqwest::header::*;
 use scraper::{Html, Selector};
 use std::{collections::HashMap, option::Option, result::*, sync::mpsc, thread, time::Duration};
+use tokio;
 //use colored::*;
 
 /// A Hodor structure
@@ -24,6 +25,8 @@ impl HodorStruct {
         HodorStruct::default()
     }
 
+    pub fn get_url(&self) -> String { self.url.to_owned() }
+
     pub fn set_url<S>(&mut self, url: S) -> &mut Self
     where
         S: Into<String>,
@@ -37,6 +40,7 @@ impl HodorStruct {
         self
     }
 
+
     pub fn get_goal(&self) -> u64 {
         self.goal
     }
@@ -49,7 +53,7 @@ impl HodorStruct {
         Ok(())
     }
 
-    pub fn get_cookie(&self, client: reqwest::Client) -> HashMap<String, String> {
+    pub fn get_cookie(&self, client: &reqwest::Client) -> HashMap<String, String> {
         let url = self.url.clone();
         let cookie = client
             .head(&url)
@@ -90,6 +94,8 @@ impl HodorStruct {
         }
     }
 
+    pub fn get_form(&self) -> HashMap<&'static str, String> {self.form.to_owned()}
+
     pub fn insert_form<S>(&mut self, key: &'static str, value: S) -> &mut Self
     where
         S: Into<String>,
@@ -106,15 +112,21 @@ impl HodorStruct {
         pb.format("╢▌▌░╟");
 
         for i in 0..count {
+			let mut ck = false;
+			if self.cookies { ck = true }; 
             let tx = tx.clone();
-            pb.inc();
+            
             let client = reqwest::Client::new();
             let mut form = self.form.clone();
             let mut header = HeaderMap::new();
             header.insert("User-Agent", HeaderValue::from_static("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0)"));
-            if self.cookies {
+            
+            let post = client.post(&self.url);
+			let url = self.url.to_owned();
+            let _handle = thread::spawn(move || {
+			
+				if ck {
                 let mut v;
-                let url = self.url.clone();
                 let temp = client.get(&url).header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0)").send();
 //                println!("{:?}", &temp);
                 let cookie = temp.unwrap().headers().to_owned().get("set-cookie").unwrap().to_owned();
@@ -128,17 +140,17 @@ impl HodorStruct {
                 form.insert("key", v.to_owned());
                 let t = format!("HoldTheDoor={}", v.to_owned());
                 header.insert(COOKIE, HeaderValue::from_str(&t).unwrap());
-            }
-            let post = client.post(&self.url);
-            let _handle = thread::spawn(move || {
+				}
+			
                 let _req = post.headers(header).form(&form).send();
                 tx.send(i).is_ok();
-                thread::sleep(Duration::from_millis(1));
+                thread::sleep(Duration::from_millis(10));
             });
         }
 
         for _i in 0..count {
             rx.recv().is_ok();
+			pb.inc();
         }
 
         pb.finish_print("Votes been casted");
